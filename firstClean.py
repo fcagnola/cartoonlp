@@ -53,7 +53,9 @@ def parse_subs() -> str:
         allowed_chars = string.ascii_letters + " " + "'" + "-"
         remove_punctuation = "".join([char for char in remove_returns if char in allowed_chars])
         remove_double_spaces = re.sub(re.compile("\s+"), " ", remove_punctuation)
+        
         print(remove_double_spaces)
+        # da finire
         
         # Turn all words to lowercase
 
@@ -63,3 +65,5 @@ def parse_subs() -> str:
 
 if __name__=='__main__':
     parse_subs()
+
+    # ciao
