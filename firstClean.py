@@ -36,7 +36,7 @@ def parse_subs() -> str:
             year = file.split("_")[-1].strip(".srt")
             title = "_".join(file.split("_")[:-1])
 
-            final_object[file] = [year, remove_starting_spaces]
+            final_object[title] = [year, remove_starting_spaces]
 
     return final_object 
 
