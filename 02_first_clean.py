@@ -29,9 +29,9 @@ def parse_subs() -> str:
             remove_html_closing = re.sub(re.compile(r"((<\/[^>]+>)+)"), " ", remove_html)
             remove_dashes = re.sub(re.compile(r"-\s"), " ", remove_html_closing)
             remove_returns = re.sub(re.compile(r"[\r\t\n]"), " ", remove_dashes)
-            allowed_chars = string.ascii_letters + " " + "'" + "-"
-            remove_punctuation_lowercase = "".join([char.lower() for char in remove_returns if char in allowed_chars])
-            remove_double_spaces = re.sub(re.compile(r"(\s+)"), " ", remove_punctuation_lowercase)
+            # allowed_chars = string.ascii_letters + " " + "'" + "-" + "."
+            # remove_punctuation_lowercase = "".join([char.lower() for char in remove_returns if char in allowed_chars])
+            remove_double_spaces = re.sub(re.compile(r"(\s+)"), " ", remove_returns)
             remove_starting_spaces = re.sub(re.compile(r"(^\s)"), "", remove_double_spaces)
             year = file.split("_")[-1].strip(".srt")
             title = "_".join(file.split("_")[:-1])

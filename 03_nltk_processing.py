@@ -1,5 +1,6 @@
+from re import S
 from nltk import tokenize
-from nltk.tokenize import word_tokenize
+from nltk.tokenize import word_tokenize, sent_tokenize
 import pandas as pd
 import pickle
 from pprint import pprint
@@ -15,8 +16,10 @@ df = pd.DataFrame.from_dict(data, orient='index', columns=["Year", "Text"])
 
 def tokenize_and_remove_stopwords(txt):
     """Basic tokenisation function with stopwords removal"""
-    text = word_tokenize(txt)
-    text = " ".join([word for word in text if word not in STOP_WORDS])
+    text = sent_tokenize(txt)
+    for sent in text:
+        sent = " ".join([word for word in sent if word not in STOP_WORDS])
+    # text = " ".join(text)
     return text
 
 df['tokenized'] = df['Text'].apply(lambda x: tokenize_and_remove_stopwords(x))
@@ -25,3 +28,4 @@ df['tokenized'] = df['Text'].apply(lambda x: tokenize_and_remove_stopwords(x))
 
 
 print(df.head(59))
+print(df['tokenized'])
