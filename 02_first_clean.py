@@ -2,10 +2,10 @@ import pysrt
 import pickle
 import re
 import os
-import string
+from typing import Dict
 
 
-def parse_subs() -> str:
+def parse_subs() -> Dict[str, list]:
     """ 
     Turn subtitle files in object:
     {"movie_name_YEAR": ["text"], ...}
@@ -20,10 +20,10 @@ def parse_subs() -> str:
             except UnicodeDecodeError:
                 print(f"Error handling file: {file}\nSkipping...")
 
-            # Remove opensubtitles ads and intro:
-            opensubs_ads = r'(Advertise your product or brand here)|(contact www\.OpenSubtitles\.(org|com) today)|(Support us and become VIP member)|(to remove all ads from www\.OpenSubtitles\.(org|com))|(-== \[ www\.OpenSubtitles\.(org|com) \] ==-)|((((Subtitles by )|(Sync by ))(.+))$)|(font color="(.+)?")|(Provided by(.+)$)|(^(https?):\/\/[^\s\/$.?#].[^\s]*$)'
+            # Remove opensubtitles ads and intro: 
+            opensubs_ads = r'(Advertise your product or brand here)|(contact www\.OpenSubtitles\.(org|com) today)|(Support us and become VIP member)|(to remove all ads from www\.OpenSubtitles\.(org|com))|(-== \[ www\.OpenSubtitles\.(org|com) \] ==-)|((((Subtitles by )|(Sync by ))(.+))$)|(font color="(.+)?")|(Provided by(.+)$)|(^(https?):\/\/[^\s\/$.?#].[^\s]*$)|(Please rate this subtitle at (.)+$)|(Help other users to choose the best subtitles)'
             remove_ads = re.sub(re.compile(opensubs_ads), "", srt.text)
-            # Remove html tags, dashes (dialogues), returns and punctuation
+            # Remove html tags, dashes (dialogues), returns
             remove_curly = re.sub(re.compile(r"\{.*?\}"), "", remove_ads)
             remove_html = re.sub(re.compile(r"((<[^>]+>)+)"), " ", remove_curly)
             remove_html_closing = re.sub(re.compile(r"((<\/[^>]+>)+)"), " ", remove_html)
