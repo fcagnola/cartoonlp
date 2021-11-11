@@ -1,3 +1,5 @@
+import pandas as pd
 import spacy
-nlp = spacy.load("en_core_web_sm")
-doc = nlp("This is a sentence.")
+import matplotlib.pyplot as plt
+import numpy as np 
+import math 
