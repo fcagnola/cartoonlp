@@ -21,7 +21,7 @@ def parse_subs() -> Dict[str, list]:
                 print(f"Error handling file: {file}\nSkipping...")
 
             # Remove opensubtitles ads and intro: 
-            opensubs_ads = r'(Advertise your product or brand here)|(contact www\.OpenSubtitles\.(org|com) today)|(Support us and become VIP member)|(to remove all ads from www\.OpenSubtitles\.(org|com))|(-== \[ www\.OpenSubtitles\.(org|com) \] ==-)|((((Subtitles by )|(Sync by ))(.+))$)|(font color="(.+)?")|(Provided by(.+)$)|(^(https?):\/\/[^\s\/$.?#].[^\s]*$)|(Please rate this subtitle at (.)+$)|(Help other users to choose the best subtitles)'
+            opensubs_ads = r'(♪)|(Advertise your product or brand here)|(contact www\.OpenSubtitles\.(org|com) today)|(Support us and become VIP member)|(to remove all ads from www\.OpenSubtitles\.(org|com))|(-== \[ www\.OpenSubtitles\.(org|com) \] ==-)|((((Subtitles by )|(Sync by ))(.+))$)|(font color="(.+)?")|(Provided by(.+)$)|(^(https?):\/\/[^\s\/$.?#].[^\s]*$)|(Please rate this subtitle at (.)+$)|(Help other users to choose the best subtitles)'
             remove_ads = re.sub(re.compile(opensubs_ads), "", srt.text)
             # Remove html tags, dashes (dialogues), returns
             remove_curly = re.sub(re.compile(r"\{.*?\}"), "", remove_ads)
