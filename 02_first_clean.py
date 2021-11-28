@@ -44,5 +44,5 @@ def parse_subs() -> Dict[str, list]:
 
 if __name__=='__main__':
     data = parse_subs()
-    with open("texts.pickle", "wb") as f:
+    with open("02_out_texts.pickle", "wb") as f:
         pickle.dump(data, f)
