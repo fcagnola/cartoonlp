@@ -2,11 +2,11 @@
 
 _Introduction_
 
-why we chose the project...
+The reason behind the choice of our subject is a deep fascination for the imaginary worlds crafted by Disney Pixar and for the language used in the company's motion pictures. Since the movies, ranging from classic to contemporary, span almost a hundred years, it was also the perfect opportunity to study chilren-centric language from a diachronic point of view.
 
 _Scope_
 
-59 subtitles for disney movies from 1937 to 2021.
+When we took up the project we chose to include in the study any and all motion pictures from Disney Pixar studios. When this choice was made, 59 movies and subtitles were therefore included, from 1937 to 2021.
 
 _Methodology_
 
