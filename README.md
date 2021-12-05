@@ -1,12 +1,12 @@
-### CartooNLP
+# CartooNLP
 
 _Introduction_
 
-The reason behind the choice of our subject is a deep fascination for the imaginary worlds crafted by Disney Pixar and for the language used in the company's motion pictures. Since the movies, ranging from classic to contemporary, span almost a hundred years, it was also the perfect opportunity to study chilren-centric language from a diachronic point of view.
+The reason behind the choice of our subject is a deep fascination for the imaginary worlds crafted by Disney Pixar and for the language used in the company's motion pictures. Since these movies, ranging from classic to contemporary, span almost a hundred years, it was also the perfect opportunity to study chilren-centric language from a **diachronic** point of view. The challenge mainly consisted in the normalization and treatment of such orally-bound and children-specific language in such a way that could allow us to gather meaningful insight.
 
 _Scope_
 
-When we took up the project we chose to include in the study any and all motion pictures from Disney Pixar studios. When this choice was made, 59 movies and subtitles were therefore included, from 1937 to 2021.
+When we took up the project we chose to include in the study any and all motion pictures from Disney Pixar studios up until that moment. When this choice was made, 59 movies had been created and distributed, and were therefore included, from 1937 to 2021.
 
 _Methodology_
 
