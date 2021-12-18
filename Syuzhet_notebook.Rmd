@@ -1,20 +1,28 @@
 ---
-title: Syuzeth Library 
-output: html_notebook
+title: "Syuzeth Library"
+output: html_document
 ---
-This is a notebook showing how data was processed on R using Syuzeth library 
- 
+
+Sentiment analysis is here done through the use of R package "Syuzhet" developed by Mattew Jockers at the Nebraska Literary Lab documentation is available at [Syuzeth github repository](https://github.com/mjockers/syuzhet).
+
+#### **What is Syuzhet?**
+
+Syuzhet is one of the two terms describing a narrative composition, along with the fabula, theorized by Russian Formalists Victor Shklovsky and Vladimir Propp. It refers to the "device" or technique of a narrative and is concerned with the manner in which the components of a story are organized. \n
+
+Since the object of our study is a collection of movies, rich of narrative expedients that do not follow a chronological order, such as flashbacks, we needed a method of analysis that would also take into consideration this specificity for a better understanding of the emotions in the plot.
+
 ```{r}
 library(syuzhet)
 result_list <- list()
 ```
+
 First we import the Syuzhet package a variable for storing our resulting vector in a list
 
-```{r}
+```{r echo=TRUE, warning=FALSE}
 setwd("~/Desktop/cartoonlp/txts")
 x<- list.files()
 for (film in x) {
-  dir = paste("~/Desktop/cartoonlp/txts/",film, sep="")
+  dir = paste("~/Desktop/cartoonlp/txts/",film, sep="" )
   text <- file(description=film, open = "r")
   film_as_string<- get_text_as_string(text)
   s_v <- get_sentences(film_as_string)
@@ -23,14 +31,7 @@ for (film in x) {
 }
 
 ```
-With a for() function we analyse each file contained in the "/txts" directory. 
 
-A result list containing nested lists, containing values representing each sentence analysed using the syuzhet default method, is created 
-```{r}
-df <- wri
-for (item in result_list) {
-  print(item)
-}
-```
+With a for() function we analyse each file contained in the "/txts" directory.
 
-
+A result list containing nested lists, containing values representing each sentence analysed using the syuzhet default method, is created
