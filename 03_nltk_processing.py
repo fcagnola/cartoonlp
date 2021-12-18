@@ -33,8 +33,10 @@ df['Tokenized'] = df['Text'].apply(lambda x: tokenize_and_remove_stopwords(x))
 # title - year - text - sentence tokenized - tokenized
 
 
-print(df.head(59))
-df.to_pickle("03_out_dataframe.pickle")
+#print(df.head(59))
+#df.to_pickle("03_out_dataframe.pickle")
+df.to_csv("03_out_dataframe.csv")
+
 # print(df['Tokenized'].iloc[1])
 # print(df['Sentence_Tokenized'])
 # df['length'] = df["Sentence_Tokenized"].apply(lambda x: len(x))
