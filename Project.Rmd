@@ -1,0 +1,809 @@
+---
+title: "Dinsey movies analysis unsing Syuzhet library"
+output: html_notebook
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+------------------------------------------------------------------------
+
+### Abstract
+
+In this study we want to explore the changes in the language of
+dialogues in Disney movies over time using topic modelling and sentiment
+analysis since they have been (non lo so Federico aiutami ti prego).
+
+To do so we decided to undertake two main approaches:
+
+1.  First we will use [Mallet](https://mimno.github.io/Mallet/index) to
+    make a ***k*** number of clusters representing groups of movies
+    sharing the same main topic.
+
+2.  Later we are going to use [Syuzhet
+    Library](https://github.com/mjockers/syuzhet) on R to compare the
+    differences (if any) of sentimental valence among movies belonging
+    to the same cluster.
+
+Our aim is here to first analyse the distribution of different topics
+over time and secondly (also depending on the results of the clustering
+phase) see if there are some changes in the emotional valence of
+dialogues having the same topic.
+
+## What is Mallet?
+
+## What is Syuzhet?
+
+Since the object of our study is a collection of movies, rich of
+narrative expedients that do not follow a chronological order, such as
+flashbacks, we needed a method of analysis that would also take into
+consideration this specificity for a better understanding of the
+emotions in the plot.
+
+Syuzhet is one of the two terms describing a narrative composition,
+along with the fabula, theorized by Russian Formalists Victor Shklovsky
+and Vladimir Propp. It refers to the "device" or technique of a
+narrative and is concerned with the manner in which the components of a
+story are organized.
+
+------------------------------------------------------------------------
+
+## 1. Web Scraping
+
+Add a description of how we scraped the subtitles and parsed it
+
+------------------------------------------------------------------------
+
+## 2.Clustering with Mallet
+
+After data has been scraped and got through a first cleaning stage, we
+made further adjustments in order to optimize Mallet's tasks
+
+```{python}
+
+from nltk.tokenize import word_tokenize
+import spacy
+import os.path 
+import nltk
+from nltk.stem import 	WordNetLemmatizer
+import re
+
+
+NER = spacy.load("en_core_web_sm")
+path = "nn_txts/"
+for file in os.listdir("./txts"):
+    with open("./txts/"+file, "r")  as new_file:
+        text = new_file.read()
+        stripped_text = []
+        parsed = NER(text)
+        for word in parsed.ents: #automatic detection of person and organizations to remove  
+            if word.label_ == "PERSON" or word.label_ == "ORG": 
+                text = text.replace(str(word), "")
+        tokens = word_tokenize(text)
+        tagged = nltk.pos_tag(tokens)
+        for word, tag in tagged:
+            
+            if tag == 'NN' and len(word)>4: #adding to a new string only tosewords recognised as nouns and longer then 4 characters
+                stripped_text.append(word)
+
+        for word in stripped_text:#remove words with aphostrophes such as pronouns
+            if re.search(r"\w+[']\w+?",word): 
+                stripped_text.remove(str(word))
+                
+        new_string=" ".join(str(x) for x in stripped_text)
+       
+        out_file=open(path+file,"w")
+        out_file.write(new_string)
+        out_file.close()
+        
+```
+
+For the clustering task we used Mallet working from the shell.
+
+First we imported the directory containing the files of the movies
+subtitles and parsed into .txt files of the subtitles into the right
+data format to work with Mallet and removing English stop words if any
+detected.
+
+```{bash}
+ ./bin/mallet import-dir --input sample-data/nn_txts --output disney_topics.mallet --keep-sequence --remove-stopwords 
+```
+
+When we started iterating Mallet over our texts a first phase was
+exploratory in order to understand which parameters were the most
+appropriate for a small corpus as ours and function 1 was further
+refined into the final form showed above here.
+
+We detected as useful input parameters for train-topics:
+
+-   --num-topics
+
+-   --optimize-burn-in
+
+We started with a low number of topics i.e., 6 and started increasing it
+up to 15, at this point we decided clusters where satisfing: each
+cluster was intelligible, homogeneous and words made sense with the
+movies they were assigned to and were.
+
+Burn in was also raised to 60 since we noticed it helped with topics'
+homogenization.
+
+```{bash}
+train-topics --input disney_topics.mallet --num-topics 15 --optimize-burn-in 60 --output-state disney-topic-state.gz  --output-topic-keys disney_keys.txt --output-doc-topics disney_composition.csv --xml-topic-report disney_report.xml
+
+```
+
+The following are the out-put clusters.
+
+```{r echo=FALSE, paged.print=TRUE}
+library(knitr) ###enables kable for the first time
+
+kable(mallet_keys, caption ="Mallet Keys")
+
+
+```
+
+Movies in disney_composition.csv were cronologically ordered and plotted
+intoa steck bar
+
+![](Desktop/Screenshot%202022-01-20%20at%2010.29.51.png)
+
+Finally, we can analyse the distribution of topics over time.
+
+To do so we divided the movies in 3 categories:
+
+1.  Topics having a spread distribution over time
+
+2.  Topics mainly present in 20th century
+
+3.  Topics mainly present in 21th century
+
+<br>
+
+```{r echo=FALSE, paged.print=TRUE}
+
+
+kable(topic_distribution, caption ="Topics distribution")
+
+
+```
+
+<br>
+
+For clarity purpose we will name cluster_SD as *cluster1*, cluster_20 as
+*cluster2* and cluster_21 as *cluster3* from now on.
+
+<br>
+
+###### Topics in cluster1
+
+```{r}
+cluster_SD = topic_distribution %>% filter(`Spread Distribution`== 1 )
+array_SD <- cluster_SD$Topic
+array_SD
+
+
+```
+
+<br>
+
+###### Topics in cluster2
+
+```{r}
+cluster_20 = topic_distribution %>% filter(`20th century`== 1 )
+array_20 <- cluster_20$Topic
+array_20
+
+
+```
+
+<br>
+
+###### Topics in cluster3
+
+```{r}
+cluster_21 = topic_distribution %>% filter(`21st century`== 1 )
+array_21 <- cluster_21$Topic
+array_21
+
+```
+
+<br>
+
+------------------------------------------------------------------------
+
+## 3. Syuzhet analysis
+
+<br>
+
+First we import the Syuzhet package and read the csv file containing all
+the films with the tokenized sentences.
+
+```{r echo=TRUE}
+library(syuzhet) #enables Syuzhet oackage 
+library(dplyr) #enables glimpse()
+library(rmarkdown) #for pretty prints
+
+df <- read.csv(url("https://raw.githubusercontent.com/fcagnola/cartoonlp/main/03_out_dataframe.csv?token=GHSAT0AAAAAABQZWLG6FUHV22K4GWKRM2A6YPTY53A"))
+
+glimpse(df)
+```
+
+<br>
+
+The second step was readjusting a copy of the data frame fitting it to
+our purpose by:
+
+-   selecting only those variables we are interested into for our
+    analysis (i.e., "X", "Year", "Text"),
+
+-   ordering the movies chronologically, readjusting variables' labels,
+
+-   counting the length in words of each text
+
+```{r Time ordered df}
+analysis_df<- df[, c("X", "Year", "Text")]
+analysis_df<- analysis_df %>% rename(Title= X)
+for( i in rownames(analysis_df) ){
+  string <- analysis_df[i, "Text"]
+  count <- lengths(gregexpr("\\W+", string)) + 1
+  analysis_df[i, "Lenght"] = count
+}
+time_ordered = analysis_df %>% arrange(Year)
+```
+
+```{r An example of the final data frame is illustrated here, echo=FALSE}
+paged_table(head(time_ordered))
+```
+
+*An example of the final data frame is illustrated here*
+
+<br>
+
+<br>
+
+#### 3.1 Experiment on Cluster1 movies
+
+<br>
+
+Our first analysis has the purpose to explore our first hypothesis:
+
+-   IF a group of movies shares the same topic, THEN the result of a
+    sentiment analysis on each movie's dialogues remains unchanged over
+    time
+
+First we have created a data frame representing the first cluster of
+topics
+
+```{r}
+new_cluster <- cluster_SD
+new_cluster$`Spread Distribution` <- NULL
+new_cluster$`20th century` <- NULL
+new_cluster$`21st century` <- NULL
+new_cluster$Words <-"value"
+for (i in array_SD) {
+  row <- mallet_keys[match(i,mallet_keys$Num),]
+  words <- row$Words
+  new_cluster[match(i, new_cluster$Topic), "Words"] <- words
+  
+  cluster_SD <- new_cluster
+  
+}
+
+kable(cluster_SD)
+```
+
+We start by giving a closer look at topic T2
+
+![](images/paste-00F91A92.png){width="586"}
+
+The movies in which T2 is mainly present are:
+
+![The Adventures of Ichabold and Mr. Toad
+1949](images/Screenshot%202022-01-21%20at%2013.10.21.png){width="258"}
+
+![Robin Hood
+1973](images/Screenshot%202022-01-21%20at%2013.12.12.png){width="256"}
+
+![The Rescuers Down Under
+1990](images/Screenshot%202022-01-21%20at%2013.15.05.png){width="255"}
+
+![Home on the Range
+2004](images/Screenshot%202022-01-21%20at%2013.16.25.png){width="250"}
+
+<br>
+
+> +-----------------------------------------------------------------------+
+> | sheriff, horse, money, partner, singing, uncle, range, train, reward, |
+> | church, court, motorcar, fellow, trail, schoolmaster, property,       |
+> | treat, police, mania, prayer                                          |
+> +=======================================================================+
+> | *Cluster T2 words*                                                    |
+> +-----------------------------------------------------------------------+
+
+We selected 2 movies having weight \>0.25 and with a difference in age
+of at least 15 years in order to have two different generations as
+target and see, if the sentiment of dialogues, containing an high rate
+of the above listed words, changes:
+
+-   *Robin Hood (*1973)
+
+-   *The Rescuers Down Under* (1990)
+
+<br>
+
+Text processed during the scraping phase is retrieved from the
+time_ordered data frame.
+
+```{r Gathering strings 1}
+text1 = "Robin_Hood"
+row_robin <- time_ordered[match(text1, time_ordered$Title ),]
+string_robin <- row_robin$Text
+
+text2 = "The_Rescuers_Down_Under"
+row_rescuers <- time_ordered[match(text2, time_ordered$Title ),]
+string_rescuers <- row_rescuers$Text
+```
+
+<br>
+
+Calculating sentiment scores vectors of the two texts using Syuzhet
+library and its default method
+
+```{r message=FALSE, warning=FALSE}
+robin_v<- get_sentences(string_robin)
+rescuers_v <- get_sentences(string_rescuers)
+
+robin_sv<- get_sentiment(robin_v, method="syuzhet")
+rescuers_sv<- get_sentiment(rescuers_v, method="syuzhet")
+
+```
+
+rescaled_x\_2
+
+calculate a moving average for each vector of raw values. We'll use a
+window size equal to 1/10 of the overall length of the vector.
+
+\
+
+```{r}
+robin_wdw <- round(length(robin_sv)*.1)
+robinìì_rolled <- zoo::rollmean(poa_values, k=pwdw)
+rescuers_wdw <- round(length(bovary_values)*.1)
+bov_rolled <- zoo::rollmean(bovary_values, k=bwdw)
+```
+
+![](images/paste-4E6F61D1.png)
+
+![](images/paste-34E14B0D.png)
+
+![](images/paste-B728B1AE.png)
+
+![](images/paste-AD862E86.png)
+
+![](images/paste-02E5B664.png)
+
+#### Sentiment analysis with Syuzet
+
+##### Clustering by year
+
+The analysis we want to make is based on the chronological order of
+release of the movies in order to understand if there are significant
+changes in the construction of the plot changes through time in terms of
+sentiment.\n First, we ordered the movies in descending order by year to
+get a general overview of the release dates, then we proceed by
+clustering the movies by decade and make summaries of of how sentiments
+are distributed for each film.
+
+**Ordering function**
+
+**Making clusters**
+
+```{r}
+cluster_thirties = time_ordered %>% filter(Year < 1940 )
+cluster_fourties = time_ordered %>% filter(1940 <= Year & Year < 1950 )
+cluster_fifties = time_ordered %>% filter(1950 <= Year & Year < 1960 )
+cluster_sixties = time_ordered %>% filter(1960 <= Year & Year < 1970 )
+cluster_seventies = time_ordered %>% filter(1970 <= Year & Year < 1980 )
+cluster_eighties = time_ordered %>% filter(1980 <= Year & Year < 1990 )
+cluster_nineties = time_ordered %>% filter(1990 <= Year & Year < 2000 )
+cluster_early_twoth = time_ordered %>% filter(2000 <= Year & Year < 2010 )
+cluster_ten_twoth = time_ordered %>% filter(2010 <= Year )
+cluster_twenties_twoth = time_ordered %>% filter(2020 <= Year)
+```
+
+**Example:**
+
+```{r echo=FALSE}
+paged_table(cluster_eighties)
+```
+
+**Cluster 1**
+
+```{r message=FALSE, warning=FALSE}
+#This chunk shows the code used for summarizing results for each decade, for the other decades' clusters the notebook only shows the results
+for(i in rownames(cluster_thirties)){
+  string <- cluster_thirties[i, "Text"]
+  tokens <- get_sentences(string) #tokenize sentences
+  syuzhet_vec <-  get_sentiment(tokens, method="syuzhet")
+  bing_vec <-  get_sentiment(tokens, method="bing")
+  afinn_vec <-  get_sentiment(tokens, method="afinn")
+  
+  print(cluster_thirties[i,"Title"])
+  print(cluster_thirties[i,"Year"])
+
+  print(summary(syuzhet_vec))
+  print(summary(bing_vec))
+  print(summary(afinn_vec))
+  
+}
+```
+
+**Cluster2**
+
+```{r echo=FALSE}
+for(i in rownames(cluster_fourties)){
+  string <- cluster_fourties[i, "Text"]
+  tokens <- get_sentences(string) #tokenize sentences
+  syuzhet_vec <-  get_sentiment(tokens, method="syuzhet")
+  bing_vec <-  get_sentiment(tokens, method="bing")
+  afinn_vec <-  get_sentiment(tokens, method="afinn")
+  
+  print(cluster_fourties[i,"Title"])
+  print(cluster_fourties[i,"Year"])
+
+  print(summary(syuzhet_vec))
+  print(summary(bing_vec))
+  print(summary(afinn_vec))
+  
+}
+```
+
+**Cluster 3**
+
+```{r echo=FALSE}
+for(i in rownames(cluster_fifties)){
+  string <- cluster_fifties[i, "Text"]
+  tokens <- get_sentences(string) #tokenize sentences
+  syuzhet_vec <-  get_sentiment(tokens, method="syuzhet")
+  bing_vec <-  get_sentiment(tokens, method="bing")
+  afinn_vec <-  get_sentiment(tokens, method="afinn")
+  
+  print(cluster_fifties[i,"Title"])
+  print(cluster_fifties[i,"Year"])
+
+  print(summary(syuzhet_vec))
+  print(summary(bing_vec))
+  print(summary(afinn_vec))
+  
+}
+```
+
+Since we recognise the visualisation above given by the summaries is
+trivial to have a grasp on the changes of the sentiment in narrations
+given by time and by the different methods used, we decided to plot
+(using scatterplots) the central tendency (i.e., the mean of the vector)
+of the movies over time starting from the time_ordered data frame. \n
+
+First we iterate the df rows and add the mean of each vector to its
+corresponding movie:
+
+```{r}
+for(i in rownames(time_ordered)){
+  string <- time_ordered[i, "Text"]
+  tokens <- get_sentences(string) #tokenize sentences
+  syuzhet_vec <-  get_sentiment(tokens, method="syuzhet")
+  time_ordered[i, "Syuzhet_mean"] <- mean(syuzhet_vec)
+}
+```
+
+```{r}
+for(i in rownames(time_ordered)){
+  string <- time_ordered[i, "Text"]
+  tokens <- get_sentences(string) #tokenize sentences
+  bing_vec <-  get_sentiment(tokens, method="bing")
+  time_ordered[i, "Bing_mean"] <- mean(bing_vec)
+}
+```
+
+```{r}
+for(i in rownames(time_ordered)){
+  string <- time_ordered[i, "Text"]
+  tokens <- get_sentences(string) #tokenize sentences
+  afinn_vec <-  get_sentiment(tokens, method="afinn")
+  time_ordered[i, "Afinn_mean"] <- mean(afinn_vec)
+}
+```
+
+```{r}
+for(i in rownames(time_ordered)){
+  string <- time_ordered[i, "Text"]
+  tokens <- get_sentences(string) #tokenize sentences
+  nrc_vec <-  get_sentiment(tokens, method="nrc", lang="english")
+  time_ordered[i, "Nrc_mean"] <- mean(nrc_vec)
+}
+```
+
+```{r}
+paged_table(head(time_ordered))
+```
+
+Then a scatter plot is created for each method, having as Y axis the
+mean value and X axys the time
+
+```{r echo=FALSE}
+x <- time_ordered$Year
+y <- time_ordered$Syuzhet_mean
+
+plot(x, y, main = "Syuzhet vector means' scatterplot",
+     xlab = "Years", ylab = "Means' values",
+     pch = 15, frame = FALSE)
+abline(lm(y ~ x, data = mtcars), col = "blue")
+lines(lowess(x, y), col = "green")
+```
+
+```{r echo=FALSE}
+x <- time_ordered$Year
+y <- time_ordered$Bing_mean
+
+plot(x, y, main = "Bing vector means' scatterplot",
+     xlab = "Years", ylab = "Means' values",
+     pch = 15, frame = FALSE)
+abline(lm(y ~ x, data = mtcars), col = "blue")
+lines(lowess(x, y), col = "green")
+```
+
+```{r echo=FALSE}
+x <- time_ordered$Year
+y <- time_ordered$Afinn_mean
+
+plot(x, y, main = "Afinn vector means' scatterplot",
+     xlab = "Years", ylab = "Means' values",
+     pch = 15, frame = FALSE)
+abline(lm(y ~ x, data = mtcars), col = "blue")
+lines(lowess(x, y), col = "green")
+```
+
+```{r echo=FALSE}
+x <- time_ordered$Year
+y <- time_ordered$Nrc_mean
+
+plot(x, y, main = "Nrc vector means' scatterplot",
+     xlab = "Years", ylab = "Means' values",
+     pch = 15, frame = FALSE)
+abline(lm(y ~ x, data = mtcars), col = "blue")
+lines(lowess(x, y), col = "green")
+```
+
+By this first analysis we can come to the conclusion the central
+tendency of the sentimenst in the movied tends lo lower throug time
+independently by the method used
+
+##### Nrc sentiment
+
+Next we want to test if the nrc sentiment analysis can give us further
+hints by plotting the percentage of emotions for each film over time
+
+```{r}
+for(i in rownames(time_ordered)){
+  string <- time_ordered[i, "Text"]
+  tokens <- get_sentences(string) #tokenize sentences
+  nrc_table <- get_nrc_sentiment(tokens)
+  proportions <- colSums(prop.table((nrc_table[, 1:8])))
+  time_ordered[i, "Anger"] <- proportions["anger"]
+  time_ordered[i, "Anticipation"] <- proportions["anticipation"]
+  time_ordered[i, "Disgust"] <- proportions["disgust"]
+  time_ordered[i, "Fear"] <- proportions["fear"]
+  time_ordered[i, "Joy"] <- proportions["joy"]
+  time_ordered[i, "Sadness"] <- proportions["sadness"]
+  time_ordered[i, "Surprise"] <- proportions["surprise"]
+  time_ordered[i, "Trust"] <- proportions["trust"]
+}
+```
+
+```{r}
+paged_table(head(time_ordered))
+```
+
+In order to create a stacked bar plot to compare the amount of emotions
+in the movies (chronologically ordered) we create a a new data frame for
+having as columns the Titles, the type of emotion and its correspoinding
+value in an other column and inally the year to keep them ordered. \n We
+proceed by creating a new df for each emotion like the one showed by the
+chunk below and then we bind them together
+
+```{r}
+anger_df<- data.frame() #firstly we need to initialize an empty df
+```
+
+```{r}
+for(i in rownames(time_ordered)){
+  anger_df[i,"Movie"] = time_ordered[i, "Title"]
+  anger_df[i,"Emotion"] = "Anger"
+  anger_df[i,"Value"] = time_ordered[i, "Anger"]
+  anger_df[i,"Year"] = time_ordered[i, "Year"]
+
+}
+```
+
+```{r include=FALSE}
+anticipation_df<- data.frame() #firstly we need to initialize an empty df
+```
+
+```{r include=FALSE}
+for(i in rownames(time_ordered)){
+  anticipation_df[i,"Movie"] = time_ordered[i, "Title"]
+  anticipation_df[i,"Emotion"] = "Anticipation"
+  anticipation_df[i,"Value"] = time_ordered[i, "Anticipation"]
+  anticipation_df[i,"Year"] = time_ordered[i, "Year"]
+}
+```
+
+```{r include=FALSE}
+disgust_df<- data.frame() #firstly we need to initialize an empty df
+```
+
+```{r include=FALSE}
+for(i in rownames(time_ordered)){
+  disgust_df[i,"Movie"] = time_ordered[i, "Title"]
+  disgust_df[i,"Emotion"] = "Disgust"
+  disgust_df[i,"Value"] = time_ordered[i, "Disgust"]
+  disgust_df[i,"Year"] = time_ordered[i, "Year"]
+
+}
+```
+
+```{r include=FALSE}
+fear_df<- data.frame() #firstly we need to initialize an empty df
+```
+
+```{r include=FALSE}
+for(i in rownames(time_ordered)){
+  fear_df[i,"Movie"] = time_ordered[i, "Title"]
+  fear_df[i,"Emotion"] = "Fear"
+  fear_df[i,"Value"] = time_ordered[i, "Fear"]
+  fear_df[i,"Year"] = time_ordered[i, "Year"]
+
+}
+```
+
+```{r include=FALSE}
+joy_df<- data.frame() #firstly we need to initialize an empty df
+```
+
+```{r include=FALSE}
+for(i in rownames(time_ordered)){
+  joy_df[i,"Movie"] = time_ordered[i, "Title"]
+  joy_df[i,"Emotion"] = "Joy"
+  joy_df[i,"Value"] = time_ordered[i, "Joy"]
+  joy_df[i,"Year"] = time_ordered[i, "Year"]
+
+}
+```
+
+```{r include=FALSE}
+sadness_df<- data.frame() #firstly we need to initialize an empty df
+```
+
+```{r include=FALSE}
+for(i in rownames(time_ordered)){
+  sadness_df[i,"Movie"] = time_ordered[i, "Title"]
+  sadness_df[i,"Emotion"] = "Sadness"
+  sadness_df[i,"Value"] = time_ordered[i, "Sadness"]
+  sadness_df[i,"Year"] = time_ordered[i, "Year"]
+
+}
+```
+
+```{r include=FALSE}
+surprise_df<- data.frame() #firstly we need to initialize an empty df
+```
+
+```{r}
+for(i in rownames(time_ordered)){
+  surprise_df[i,"Movie"] = time_ordered[i, "Title"]
+  surprise_df[i,"Emotion"] = "Surprise"
+  surprise_df[i,"Value"] = time_ordered[i, "Surprise"]
+  surprise_df[i,"Year"] = time_ordered[i, "Year"]
+
+}
+```
+
+```{r include=FALSE}
+trust_df<- data.frame() #firstly we need to initialize an empty df
+```
+
+```{r include=FALSE}
+for(i in rownames(time_ordered)){
+  trust_df[i,"Movie"] = time_ordered[i, "Title"]
+  trust_df[i,"Emotion"] = "Trust"
+  trust_df[i,"Value"] = time_ordered[i, "Trust"]
+  trust_df[i,"Year"] = time_ordered[i, "Year"]
+
+}
+```
+
+```{r}
+final_df <- rbind(anger_df,anticipation_df,disgust_df,fear_df,joy_df,sadness_df,surprise_df,trust_df)
+final_df<- final_df %>% arrange(Year)
+```
+
+After creating the final_df we plot it on a linechart and on a stacked
+barchart
+
+```{r echo=FALSE}
+
+ggplot(final_df, aes(x = Movie, y = Value, colour = Emotion, group = Emotion)) +
+  geom_line(size=0.2)  +  
+theme(aspect.ratio=2/3)
+```
+
+```{r echo=FALSE}
+
+ggplot(final_df, aes(x = Movie, y = Value, fill = Emotion)) +
+  geom_col(position = position_stack(reverse = TRUE)) +
+  guides(fill = guide_legend(reverse = TRUE))
+```
+
+The result is a bit messy we can try plotting the emotions separately or
+using the sum of the precentages of positive and negative values
+obtained wit the function ger_nrc_sentiment() only with positive and
+negative values
+
+```{r}
+pos_df <- data.frame()
+```
+
+```{r}
+for(i in rownames(time_ordered)){
+  string <- time_ordered[i, "Text"]
+  tokens <- get_sentences(string) #tokenize sentences
+  nrc_table <- get_nrc_sentiment(tokens)
+  proportions <- colSums(prop.table((nrc_table[, 9:10])))
+  pos_df[i,"Movie"] = time_ordered[i, "Title"]
+  pos_df[i,"Year"] = time_ordered[i, "Year"]
+  pos_df[i,"Emotion"] = "Positive"
+  pos_df[i,"Value"] = proportions["positive"]
+}
+```
+
+```{r}
+neg_df <- data.frame()
+```
+
+```{r}
+for(i in rownames(time_ordered)){
+  string <- time_ordered[i, "Text"]
+  tokens <- get_sentences(string) #tokenize sentences
+  nrc_table <- get_nrc_sentiment(tokens)
+  proportions <- colSums(prop.table((nrc_table[, 9:10])))
+  neg_df[i,"Movie"] = time_ordered[i, "Title"]
+  neg_df[i,"Year"] = time_ordered[i, "Year"]
+  neg_df[i,"Emotion"] = "Negative"
+  neg_df[i,"Value"] = proportions["negative"]
+}
+```
+
+```{r}
+pos_neg_df <- rbind(pos_df, neg_df)
+pos_neg_df <- pos_neg_df %>% arrange(Year)
+```
+
+```{r}
+
+library(ggplot2)
+ggplot(pos_neg_df, aes(x = Movie, y = Value, colour = Emotion, group = Emotion)) +
+  geom_line(size=0.2)  +  
+theme(aspect.ratio=2/3)
+```
+
+```{r echo=FALSE}
+
+ggplot(pos_neg_df, aes(x = Movie, y = Value, fill = Emotion)) +
+  geom_col(position = position_stack(reverse = TRUE)) +
+  guides(fill = guide_legend(reverse = TRUE))
+```
+
+```{r}
+anger_df <- 
+```
