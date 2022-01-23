@@ -29,6 +29,7 @@ Our aim is here to first analyse the distribution of different topics
 over time and secondly (also depending on the results of the clustering
 phase) see if there are some changes in the emotional valence of
 dialogues having the same topic.
+TODO fede
 
 ## What is Mallet?
 
@@ -50,7 +51,13 @@ story are organized.
 
 ## 1. Web Scraping
 
+After deciding the time window of reference for the research, 
+which spanned from 1937 (the year when **Snow White and the Seven Dwarfs** was released)
+to 2021 (the year this research first started), we needed to gather all relevant titles. 
+The Wikipedia page for [Disney movies]("https://en.wikipedia.org/wiki/List_of_Walt_Disney_Animation_Studios_films")
+The gathering of all texts was essential to our research effort 
 Add a description of how we scraped the subtitles and parsed it
+TODO fede
 
 ------------------------------------------------------------------------
 
