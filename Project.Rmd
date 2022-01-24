@@ -51,13 +51,95 @@ story are organized.
 
 ## 1. Web Scraping
 
-After deciding the time window of reference for the research, 
-which spanned from 1937 (the year when **Snow White and the Seven Dwarfs** was released)
+After deciding on the time window of reference for the research, 
+which spans from 1937 (the year when **Snow White and the Seven Dwarfs** was released)
 to 2021 (the year this research first started), we needed to gather all relevant titles. 
 The Wikipedia page for [Disney movies]("https://en.wikipedia.org/wiki/List_of_Walt_Disney_Animation_Studios_films")
-The gathering of all texts was essential to our research effort 
-Add a description of how we scraped the subtitles and parsed it
-TODO fede
+felt like the perfect place to start. We downloaded the html page using the `requests` module
+for Python and subsequently parsed the document tree using `beautifulsoup`, an XML and html 
+parsing library in Python.
+
+```{python}
+from bs4 import BeautifulSoup, PageElement
+import json
+import requests
+
+# Wikipedia page for "Disney Movies"
+DISNEY_URI = "https://en.wikipedia.org/wiki/List_of_Walt_Disney_Animation_Studios_films"
+
+# Retrieve the webpage in HTML format
+response = requests.get(DISNEY_URI)
+
+if response.status_code >= 200:
+    with open("disney_titles.html", "r") as fp:
+        data = fp.read()
+        # Turn html string into Soup object
+        soup = BeautifulSoup(data, features="lxml")
+        # retrieve all table rows containing movie titles
+        rows: List[PageElement] = soup.find_all("tr")
+
+        disney_movies = dict()
+        # Find first td element (title) and second td element (year) and aggregate in dict object
+        for row in rows:
+            disney_movies[row.find_all("td")[0].text.strip("\n")] = {"release_date": row.find_all("td")[1].text.strip("\n").replace(" ", " ")}
+        
+        # Save dict as disney_titles.json
+        with open("disney_titles.json", "w") as outfile:
+            json.dump(disney_movies, outfile)
+```
+
+Once this step was over we had a JSON file containing a map of each movie title together 
+with its release year, in the format `{ "Snow White and the Seven Dwarfs": {"year": 1937} }`. 
+To gather all subtitles for these files we needed an open collection of subtitles, and we 
+found OpenSubtitles' service to fit perfectly our needs. They provide an open REST API, 
+so after obtaining a key and getting comfortable with the documentation we quickly turned 
+the list of titles in JSON into a folder of `.srt` files.
+`.srt` files are very easy to work with, since they are written in plain text and the formatting
+is very predictable. Since at this stage we were working in Python, we decided to clean the 
+raw subtitles using a Python library called `pysrt` which proved essential to extracting textual
+data from the `.srt` files. Concurrently, we noticed that many texts were rich with html tags,
+descriptions of surroundings, advertisements and so on. While gathering the texts we therefore
+also started cleaning them.
+This is one of the functions used to remove unwanted textual data from our subtitles: 
+```{python}
+def parse_subs() -> Dict[str, list]:
+    """ 
+    Turn subtitle files in object:
+    {"movie_name_YEAR": ["text"], ...}
+    """
+    subs_directory = "subs/"
+    final_object = {}
+    for file in os.listdir("./subs"):
+        # Parse .srt file for easier handling
+        try:
+            srt  = pysrt.open(subs_directory + file)
+        except UnicodeDecodeError:
+            print(f"Error handling file: {file}\nSkipping...")
+
+        # Remove opensubtitles ads and intro: 
+        opensubs_ads = r'(♪)|(Advertise your product or brand here)|(contact www\.OpenSubtitles\.(org|com) today)|(Support us and become VIP member)|(to remove all ads from www\.OpenSubtitles\.(org|com))|(-== \[ www\.OpenSubtitles\.(org|com) \] ==-)|((((Subtitles by )|(Sync by ))(.+))$)|(font color="(.+)?")|(Provided by(.+)$)|(^(https?):\/\/[^\s\/$.?#].[^\s]*$)|(Please rate this subtitle at (.)+$)|(Help other users to choose the best subtitles)'
+        remove_ads = re.sub(re.compile(opensubs_ads), "", srt.text)
+        # Remove html tags, dashes (dialogues), returns
+        remove_curly = re.sub(re.compile(r"\{.*?\}"), "", remove_ads)
+        remove_html = re.sub(re.compile(r"((<[^>]+>)+)"), " ", remove_curly)
+        remove_html_closing = re.sub(re.compile(r"((<\/[^>]+>)+)"), " ", remove_html)
+        remove_dashes = re.sub(re.compile(r"-\s"), " ", remove_html_closing)
+        remove_returns = re.sub(re.compile(r"[\r\t\n]"), " ", remove_dashes)
+        # allowed_chars = string.ascii_letters + " " + "'" + "-" + "."
+        # remove_punctuation_lowercase = "".join([char.lower() for char in remove_returns if char in allowed_chars])
+        remove_double_spaces = re.sub(re.compile(r"(\s+)"), " ", remove_returns)
+        remove_starting_spaces = re.sub(re.compile(r"(^\s)"), "", remove_double_spaces)
+        year = file.split("_")[-1].strip(".srt")
+        title = "_".join(file.split("_")[:-1])
+
+        final_object[title] = [year, remove_starting_spaces]
+
+    return final_object 
+```
+Finally, we were done scraping and cleaning data. At this point the output of the first round was 
+*pickled* (serialized in a python-specific library) for future manipulation and saved as the first 
+dataset.
+
 
 ------------------------------------------------------------------------
 
