@@ -10,42 +10,33 @@ editor_options:
 
 ### Abstract
 
-In this study we want to explore the changes in the language of
-dialogues in Disney movies over time using topic modelling and sentiment
-analysis since they have been (non lo so Federico aiutami ti prego).
+This study will explore the changes and evolution in the language of Disney Pixar movies over time through the computational lenses of topic modelling and sentiment analysis. We decided to focus on spoken language in these motion pictures, which proved to be a complex problem to tackle, given the peculiarity of oral dialogues, especially in pictures aimed at children.
+We focused from the start on a computational method which could give us insight into the peculiarities of each movie and, possibly, into parallels or similarities between different movies in different historical moments. 
+Since the object of our study was a collection of oral texts extracted from movies, we quickly identified many challeges such as the oral nature of these texts and the widespread use of narrative expedients that complicate computational processing, such as flashbacks. We needed an additional analysis that would take into consideration this specificity and thus offer us a better understanding of the meaning and implications in the plot.
 
-To do so we decided to undertake two main approaches:
+After gathering and cleaning the textual data two main experiments were carried out:
 
-1.  First we will use [Mallet](https://mimno.github.io/Mallet/index) to
-    make a ***k*** number of clusters representing groups of movies
-    sharing the same main topic.
+1.  We firstly used a tool called [Mallet](https://mimno.github.io/Mallet/index) - a Java-based package for natural language processing - to extract ***k*** clusters of topics from each movie, finally allowing us to group motion pictures similar in themes.
 
-2.  Later we are going to use [Syuzhet
-    Library](https://github.com/mjockers/syuzhet) on R to compare the
-    differences (if any) of sentimental valence among movies belonging
-    to the same cluster.
+2.  Concurrently, we experimented with the [Syuzhet](https://github.com/mjockers/syuzhet) library for the programming language R to compare the differences - or lack thereof - of sentimental valence among movies belonging to the same thematic cluster.
 
-Our aim is here to first analyse the distribution of different topics
-over time and secondly (also depending on the results of the clustering
-phase) see if there are some changes in the emotional valence of
-dialogues having the same topic.
-TODO fede
+TODO: Conclusion (we found that...)
+
+
+### Introduction
+The reason behind the choice of our subject is a deep fascination for the imaginary worlds crafted by Disney Pixar and for the language used in the company's motion pictures. Since these movies span almost a hundred years, ranging from classic to contemporary, it was also the perfect opportunity to study chilren-centric language from a **diachronic** point of view. The challenge mainly consisted in the normalization and treatment of such orally-bound and children-specific language in such a way that could allow us to gather meaningful insight.
+When we took up the project we chose to include in the study any and all motion pictures from Disney Pixar studios up until that moment. When this choice was made, 59 movies had been created and distributed, and were therefore included, from 1937 to 2021.
 
 ## What is Mallet?
 
+From their documentation 
+> MALLET is a Java-based package for statistical natural language processing, document classification, clustering, topic modeling, information extraction, and other machine learning applications to text.
+This package was the starting point of our analysis, as it allowed us - interested humanists - to rise to the challenge of complex computational analyses without the steep learning curve of more complex tools. The CLI - command line interface, the kind of application or toolkit one can use via terminal commands - was the perfect balance between control over the analysis and output and complex computations which required programming knowledge in Java.
+Additionally, the toolkit is OpenSource software, released under the Apache 2.0 Licence, and widely used in the field, which also meant there is a large number of resources and solutions to common problems online.
+
 ## What is Syuzhet?
 
-Since the object of our study is a collection of movies, rich of
-narrative expedients that do not follow a chronological order, such as
-flashbacks, we needed a method of analysis that would also take into
-consideration this specificity for a better understanding of the
-emotions in the plot.
-
-Syuzhet is one of the two terms describing a narrative composition,
-along with the fabula, theorized by Russian Formalists Victor Shklovsky
-and Vladimir Propp. It refers to the "device" or technique of a
-narrative and is concerned with the manner in which the components of a
-story are organized.
+Syuzhet, one of the two terms describing a narrative composition, along with the fabula, theorized by Russian Formalists Victor Shklovsky and Vladimir Propp. It refers to the "device" or technique of a narrative and is concerned with the manner in which the components of a story are organized. This is the name chosen for an R language based package specifically targeted at natural language processing analyses. Its main goal is making NLP and especially sentiment analysis in textual data widely available in a simple and direct way.
 
 ------------------------------------------------------------------------
 
@@ -56,7 +47,7 @@ which spans from 1937 (the year when **Snow White and the Seven Dwarfs** was rel
 to 2021 (the year this research first started), we needed to gather all relevant titles. 
 The Wikipedia page for [Disney movies]("https://en.wikipedia.org/wiki/List_of_Walt_Disney_Animation_Studios_films")
 felt like the perfect place to start. We downloaded the html page using the `requests` module
-for Python and subsequently parsed the document tree using `beautifulsoup`, an XML and html 
+for Python and subsequently parsed the document tree using `beautifulsoup`, an XML and HTML 
 parsing library in Python.
 
 ```{python}
@@ -101,6 +92,7 @@ data from the `.srt` files. Concurrently, we noticed that many texts were rich w
 descriptions of surroundings, advertisements and so on. While gathering the texts we therefore
 also started cleaning them.
 This is one of the functions used to remove unwanted textual data from our subtitles: 
+
 ```{python}
 def parse_subs() -> Dict[str, list]:
     """ 
@@ -136,6 +128,7 @@ def parse_subs() -> Dict[str, list]:
 
     return final_object 
 ```
+
 Finally, we were done scraping and cleaning data. At this point the output of the first round was 
 *pickled* (serialized in a python-specific library) for future manipulation and saved as the first 
 dataset.
@@ -195,7 +188,10 @@ data format to work with Mallet and removing English stop words if any
 detected.
 
 ```{bash}
- ./bin/mallet import-dir --input sample-data/nn_txts --output disney_topics.mallet --keep-sequence --remove-stopwords 
+mallet import-dir \
+              --input sample-data/nn_txts \
+              --output disney_topics.mallet \
+              --keep-sequence --remove-stopwords \
 ```
 
 When we started iterating Mallet over our texts a first phase was
@@ -218,7 +214,13 @@ Burn in was also raised to 60 since we noticed it helped with topics'
 homogenization.
 
 ```{bash}
-train-topics --input disney_topics.mallet --num-topics 15 --optimize-burn-in 60 --output-state disney-topic-state.gz  --output-topic-keys disney_keys.txt --output-doc-topics disney_composition.csv --xml-topic-report disney_report.xml
+mallet train-topics --input disney_topics.mallet \
+                    --num-topics 15 \
+                    --optimize-burn-in 60 \
+                    --output-state disney-topic-state.gz  \
+                    --output-topic-keys disney_keys.txt \
+                    --output-doc-topics disney_composition.csv \
+                    --xml-topic-report disney_report.xml
 
 ```
 
