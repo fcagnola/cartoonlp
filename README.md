@@ -8,7 +8,7 @@ This study will explore the changes and evolution in the language of Disney Pict
 
 ## Contents
 
-A full report of our study is available in `.html` format and hosted on this repository's Github pages environment, which can be accessed [here](https://fcagnola.github.io/cartoonlp/Project.html).
+A full report of our study is available in `.html` format and hosted on this repository's Github pages environment, which can be accessed [here](https://fcagnola.github.io/cartoonlp/Paper.html).
 
 The rest of the repository contains the scripts and datasets used throughout the analysis.
 
