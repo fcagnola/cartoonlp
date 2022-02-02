@@ -14,21 +14,17 @@ This study will explore the changes and evolution in the language of Disney Pict
 
 ## Introduction
 
-The reason behind the choice of our subject is a deep fascination for the imaginary worlds crafted by Disney and for the language used in the company's motion pictures. Since these movies span almost a hundred years, ranging from classic to contemporary, it was also the perfect opportunity to study chilren-centric language from a **diachronic** point of view. The challenge mainly consisted in the normalization and treatment of such orally-bound and children-specific language in such a way that could allow us to gather meaningful insight.
+The reason behind the choice of our subject is a deep fascination for the imaginary worlds crafted by Disney and for the language used in the company's motion pictures. Since these movies span almost a hundred years, ranging from classic to contemporary, it was also the perfect opportunity to study chilren-centric language from a diachronic point of view. The challenge mainly consisted in the normalization and treatment of such orally-bound and children-specific language in such a way that could allow us to gather meaningful insight. Since the object of our study was a collection of oral texts extracted from movies, we quickly identified many challenges such as the oral nature of these texts and the widespread use of narrative expedients that complicate computational processing, such as flashbacks. When we took up the project we chose to include in the study any and all motion pictures from Disney Pixar studios up until that moment. When this choice was made, 59 movies had been created and distributed, and were therefore included, from 1937 to 2021. After gathering and cleaning the textual data we applied distant reading techniques on the dataset. These methodologies were aimed at finding recurrent patterns and schemes in poorly structured data. After an initial analysis and a consultation with our supervising professor, we decided to carry out a double analysis: topic modelling allowed us to group documents - our subtitle files - based on which subjects occurred in the texts and sentiment analysis gave us insight into the development of relatively positive or negative sentences throughout the movie.
 
-Since the object of our study was a collection of oral texts extracted from movies, we quickly identified many challenges such as the oral nature of these texts and the widespread use of narrative expedients that complicate computational processing, such as flashbacks. We needed an additional analysis that would take into consideration this specificity and thus offer us a better understanding of the meaning and implications in the plot.
-
-When we took up the project we chose to include in the study any and all motion pictures from Disney Pixar studios up until that moment. When this choice was made, 59 movies had been created and distributed, and were therefore included, from 1937 to 2021.
-
-After gathering and cleaning the textual data we decided to perform a distant reading on it, aimed at finding recurrent patterns and schemes in poorly structured data. The methods we employed to perform our study are text mining and sentiment analysis and the experiments were carried out through the use of the following tools.
+The tools we employed were the following:
 
 <br>
 
-#### Mallet
+#### MALLET
 
 > *MALLET is a Java-based package for statistical natural language processing, document classification, clustering, topic modeling, information extraction, and other machine learning applications to text.*[^1]
 
-[^1]: cit. <https://mimno.github.io/Mallet/index>
+[^1]: cit. [https://mimno.github.io/MALLET/index](https://mimno.github.io/Mallet/index){.uri}
 
 This package was the starting point of our analysis, as it allowed us - interested humanists - to rise to the challenge of complex computational analyses without the steep learning curve of more complex tools. The CLI - command line interface, the kind of application or toolkit one can use via terminal commands - was the perfect balance between control over the analysis and output and complex computations which required programming knowledge in Java.
 
@@ -40,7 +36,7 @@ Additionally, the toolkit is Open Source software, released under the Apache 2.0
 
 Syuzhet is one of the two terms describing a narrative composition, along with the fabula, theorized by Russian Formalists Victor Shklovsky and Vladimir Propp. It refers to the "device" or technique of a narrative and is concerned with the manner in which the components of a story are organized.
 
-This is the name chosen for an R language based package specifically targeted at natural language processing analyses. He package incorporates four different lexicons:
+This is the name chosen for an R language based package specifically targeted at natural language processing analyses. The package incorporates four different lexicons:
 
 -   Syuzhet (default)
 
@@ -53,6 +49,8 @@ This is the name chosen for an R language based package specifically targeted at
 Its main goal is making NLP and especially sentiment analysis in textual data widely available in a simple and direct way. This particular kind of analysis reveals the emotional shifts that serve as proxies for the narrative movement between conflict and its resolution.[^2]
 
 [^2]: cf. <https://github.com/mjockers/syuzhet>
+
+<br>
 
 ------------------------------------------------------------------------
 
@@ -129,13 +127,15 @@ def parse_subs() -> Dict[str, list]:
 
 Finally, we were done scraping and cleaning data. At this point the output of the first round was *pickled* (serialized in a python-specific library) for future manipulation and saved as the first dataset.
 
+<br>
+
 ------------------------------------------------------------------------
 
 ## 2. Topic Modelling
 
 ### Data Pre-processing
 
-We started the topic modelling stage by iterating MALLET for the first time over the files resulting from the cleaning phase described section 1. We noticed immediately that texts needed further cleaning because Mallet's stop-words dictionary and the pruning command had trouble avoiding/lowering the presence of noisy words from the clusters we wanted to create, making latters hard to understand . To resolve this first issue we created an additional python script and fed it with our subtitles files contained in directory .`/txts`.
+We started the topic modelling stage by iterating MALLET for the first time over the files resulting from the cleaning phase described section 1. We noticed immediately that texts needed further cleaning because MALLET's stop-words dictionary and the pruning command had trouble avoiding/lowering the presence of noisy words from the clusters we wanted to create, making the latter hard to understand. To resolve this first issue we created an additional python script and fed it with our subtitles files contained in directory `./txts`.
 
 ```{python eval=FALSE}
 
@@ -163,11 +163,11 @@ for file in os.listdir("./txts"):
                 stripped_text.append(word)
 ```
 
-We imported `spacy`, `nltk` and `re` libraries performing NLP tasks such as PoS tagging and Name Entity Recognition. Their methods were used to clean up dialogues from character from non-lexical phenomena names and stop-words. For this purpose we first used spacy's `en_core_web_sm` dictionary to parse words and recognize characters' names labeled as `"PP"` and `"ORG"` by the parser, later nltk's pos tagger was used to recognize `"NN"` (ie., English nouns) with len() equal or greater than four characters and filter out all the other words.
+We imported `spacy`, `nltk` and `re` libraries performing NLP tasks such as PoS tagging and Name Entity Recognition. Their methods were used to clean up dialogues from character from non-lexical phenomena, names and stop-words. For this purpose we first used spacy's `en_core_web_sm` data set to parse words and recognize characters' names labeled as `"PERSON"` and `"ORG"` by the parser, later `nltk`'s PoS tagger was used to recognize `"NN"` (i.e., English nouns) with `len()` equal or greater than four characters and filter out all other words.
 
-After this step dialogues were fed back to MALLET, which produced new clusters to have meaningful word that made sense with one another to human readers.
+After this step dialogues were fed back to MALLET, which produced new clusters of meaningful meaningful words that made sense with one another to human readers.
 
-Finally clusters were improved by removig words recognized as nouns, but containing symbols (in our particular case we had issues with apostrophes) in order to avoid redundancies -- inside and among clusters -- given by different forms of the same word.
+Finally clusters were improved by removing words recognized as nouns, but containing symbols (in our particular case we had issues with apostrophes) in order to avoid redundancies -- inside and among clusters -- given by different forms of the same word.
 
 The resulting files were saved into directory `cartoonlp/nn_txts`.
 
@@ -189,15 +189,21 @@ The resulting files were saved into directory `cartoonlp/nn_txts`.
 
 ### Text Mining
 
-Topic modelling is an unsupervised text mining method we decided to perform along with sentiment analysis. The technique of combining these two distant reading methods is at the state of the art observed to be prone to return interesting results.
+> Text mining, also known as text data mining, is the process of transforming unstructured text into a structured format to identify meaningful patterns and new insights.
+>
+> [IBM](https://www.ibm.com/cloud/learn/text-mining)
 
-First we imported th pre-processed files from directory `/nn_txts` into Mallet and removed English stop words -- if any -- detected with command `--remove-stopwords.`
+Topic modelling is an unsupervised text mining method we decided to perform along with sentiment analysis. We combined both techniques not only to discover which topic characters talk about the most, but also to understan whether they talk positively or negatively when they talk about such topics.[^3]
+
+[^3]: cf.<https://www.qualtrics.com/uk/experience-management/research/text-analysis/?rid=ip&prevsite=en&newsite=uk&geo=IT&geomatch=uk>
+
+First we imported the pre-processed files from directory `/nn_txts` into MALLET and removed English stop words -- if any -- detected with command `--remove-stopwords.`
 
 `mallet import-dir \`
 
 `--input sample-data/nn_txts \`
 
-`--output disney_topics.mallet \`
+`--output disney_topics.malle \`
 
 `--keep-sequence\`
 
@@ -205,19 +211,19 @@ First we imported th pre-processed files from directory `/nn_txts` into Mallet a
 
 <br>
 
-In the exploratory phase we run MALLET multiple times over the corpus, parameters were modified from time to time considering the size and peculiarities of our corpus such as its limited dimension (i.e., 1.9 MB for 59 files), ans target-specificity of the language used in children movies. Thus, topics had to be appealing or at least related to kids' everyday life and likes (e.g., one topic could concern school, family, games emotions or different genres of tales).
+In the exploratory phase we ran MALLET multiple times over the corpus, parameters were modified from time to time considering the peculiarities of our corpus such as its limited dimension (i.e., 1.9 MB for 59 files), and target-specificity of the language used in children's movies. Thus, topics had to be appealing or at least related to kids' everyday life and likes (e.g., one topic could concern school, family, games emotions or different genres of tales).
 
 We detected as useful input parameters for train-topics:
 
 -   `–num-topics`: the actual number of topics created.
 
-    Considering the abovementioned characteristics of the Disney corpus we set 5 as a starting alue and increased it up to 15, at this point we decided clusters where satisfying: each cluster was intelligible, homogeneous and words made sense with the movies they were assigned to
+    Considering the abovev mentioned characteristics of the Disney corpus we set 5 as a starting value and increased it up to 15, at this point we decided clusters where satisfying: each cluster was more intelligible, homogeneous and words made sense with the movies they were assigned to
 
--   `–optimize-burn-in`: the number of iterations before hyper-parameter optimization begins. Default is twice the optimize interval.[^3]It was raised to to 60 (default was twice of interval, i.e., 40) since we noticed it helped with topics' homogenization.
+-   `–optimize-burn-in`: the number of iterations before hyper-parameter optimization begins. Default is twice the optimize interval.[^4] It was raised to to 60 (default was twice of interval, i.e., 40) since we noticed it helped with topics' homogenization.
 
     <br>
 
-[^3]: cit. <https://mimno.github.io/Mallet/topics>
+[^4]: cit. [https://mimno.github.io/MALLET/topics](https://mimno.github.io/Mallet/topics){.uri}
 
 Numbers of iterations and optimization interval were kept as default since they worked for us:
 
@@ -254,18 +260,22 @@ library(knitr)
 library(dplyr)
 library(ggplot2) 
 library(rmarkdown) #paged_table() function
-mallet_keys <- read.csv("/Users/chiara/Desktop/final_file/mallet_keys.csv")
-mallet_values <- read.csv("/Users/chiara/Desktop/final_file/mallet_values.csv")
+mallet_keys <- read.csv("/Users/chiara/Desktop/cartoonlp/final_file/mallet_keys.csv")
+mallet_values <- read.csv("/Users/chiara/Desktop/cartoonlp/final_file/mallet_values.csv")
 paged_table(head(mallet_values))
 ```
+
+*Head of the first data frame extracted from our analysis*
+
+<br>
 
 We proceeded by plotting the stack bar of `mallet_values` data frame. This kind of visualization helped us to understand the topics distribution over time and in which movie they were present and visible.
 
 By looking at the chart below we can already distinguish at this early stage of our analysis three distinct ways in which topics are distributed over time:
 
-1.  Topics spread allover the considered time range (e.g.,T5and T8)
+1.  Topics spread all over the considered time range (e.g.,T5 and T8)
 
-2.  Topics concentrated in one or more specific timespans (e.g.,T10 and T13)
+2.  Topics concentrated in one or more specific times pans (e.g.,T10 and T13)
 
 3.  Rare topics only appearing once in a while (e.g,T7)
 
@@ -273,11 +283,13 @@ By looking at the chart below we can already distinguish at this early stage of 
 
 <br>
 
-In order to be more accustomed to the data we were presented, we looked at the count of movies for each topic, to see how movies are distributed among topics. To do so we have plotted a line chart for each topic. We noticed that all the topics have a few movies in which **their weight value is above 0.20** and selected this number as a minimum threshold for choosing which movie to include in which cluster.
+In order to get more accustomed to the data we gathered, we looked at the count of movies for each topic, to see how movies are distributed among topics. To do so we have plotted a line chart for each topic.
 
 ![](Screenshot%202022-02-02%20at%2002.51.25.png)
 
 ![](Screenshot%202022-02-02%20at%2002.56.08.png)
+
+We noticed that all the topics have a few movies in which **their weight value is above 0.20** and selected this number as a minimum threshold for choosing which movie to include in which cluster. This threshold was employed in the selection of movies per-topic tabulated below in `matrix`.
 
 ```{r echo=FALSE}
 #Create columns for movies' release dates and titles
@@ -462,19 +474,6 @@ for (v in T15) {
   Topic15<-c(Topic15,0)
   }
 }
-
-
-T15 <- mallet_values$T15
-vT15 <- 0.20
-Topic15 <- vector()
-for (v in T15) {
-  if (v>= vT15) {
-  Topic15<- c(Topic15, 1)
-  } else {
-  Topic15<-c(Topic15,0)
-  }
-}
-
 ```
 
 ```{r echo=FALSE}
@@ -482,6 +481,10 @@ for (v in T15) {
 matrix<-data.frame(date,movie,Topic1,Topic2,Topic3,Topic4,Topic5,Topic6,Topic7,Topic8,Topic9,Topic10,Topic11,Topic12,Topic13,Topic14,Topic15)
 paged_table(head(matrix))
 ```
+
+*Matrix data frame*
+
+<br>
 
 ```{r echo=FALSE}
 list_topics <- c("Topic1","Topic2","Topic3","Topic4","Topic5","Topic6","Topic7","Topic8","Topic9","Topic10","Topic11","Topic12","Topic13","Topic14","Topic15")
@@ -501,11 +504,11 @@ col = "darkred",
 horiz = FALSE)
 ```
 
-Here follows a list of the topics' words accompanied by tables showing the top N movies for each clusters based on the matrix.
-
-##### Movies in T1
+*Plot bar of the number of movies per topic*
 
 <br>
+
+The following script shows how we built the tables for each cluster's movies:
 
 ```{r}
 movies <- c()
@@ -523,10 +526,16 @@ for (i in rownames(matrix)) {
  }
  
 cluster_T1 <-data.frame(movies, dates, t_weight)
-paged_table(cluster_T1)
+
 ```
 
-##### 
+<br>
+
+##### Movies in T1
+
+```{r echo=FALSE}
+paged_table(cluster_T1)
+```
 
 > thing friend medal jungle wheel video arcade stuff track racer glitch building today virus man-village buddy inurity march credit princess
 
@@ -890,12 +899,10 @@ On the contrary, some of the clusters proved vital to understanding our data-set
 
 Specifically, we found:
 
- • **T2** looks like general tale-related language, and consists mainly of classic well-known movies which share a great deal of language. Many of these were released around the 1960s, but it was indeed interesting to see a more recent picture (Tangled, 2010) included in the cluster. 
-
+ • **T2** looks like general tale-related language, and consists mainly of classic well-known movies which share a great deal of language. Many of these were released around the 1960s, but it was indeed interesting to see a more recent picture (Tangled, 2010) included in the cluster. \
 This was one of the clusters selected for a targeted sentiment analysis because of this similarity between chronologically distant movies.
 
- • **T3** mainly consists in adventure-related language therefore present in movies featuring this theme in a prominent way
-
+ • **T3** mainly consists in adventure-related language therefore present in movies featuring this theme in a prominent way.\
 An additional analysis could shed some light on the differences or similarities between movies from 1953, 1990 and 2002, spanning many years.
 
  • **T5** appears to be family-related language, and seems to be prominent in many movies. An interesting feature of this table is that there seems to be some kind of correlation between movies with a strong male vs female lead, where the former have fewer topic-related language while in the latter the weight is generally higher. This observation warrants additional analysis.
@@ -910,7 +917,7 @@ An additional analysis could shed some light on the differences or similarities 
 
  • **T14** consists in magical or fantastical words. Included movies seem to warrant this idea, but we'd be interested in an additional sentiment analysis to understand the different ways this theme is portrayed in 1951 and 1991.
 
- • **T15**, finally, proved to be an interesting cluster, as it looked like it could include many strong female leads. We decided to focus our attention on this train of thought and included in additional research all movies led by women to understand the difference in perception from 2000 to today. appears to be family-related language, and seems to be prominent in many movies. An interesting feature of this table is that there seems to be some kind of correlation between movies with a strong male vs female lead, where the former have fewer topic-related language while in the latter the weight is generally higher. This observation warrants additional analysis.
+ • **T15**, finally, proved to be an interesting cluster, as it looked like it could include many strong female leads. We decided to focus our attention on this train of thought and included in additional research all movies led by women to understand the difference in perception from 2000 to today.
 
 <br>
 
@@ -920,7 +927,7 @@ An additional analysis could shed some light on the differences or similarities 
 
 <br>
 
-The data we needed for starting the sentiment analysis was contained in file `03_out_dataframe.csv` created with the script in our GitHub repository [`03_nltk_processing.py`](https://github.com/fcagnola/cartoonlp/blob/main/03_nltk_processing.py)`.`
+The data we needed for starting the sentiment analysis was contained in file `03_out_dataframe.csv` created with the script in our GitHub repository [`03_nltk_processing.py`](https://github.com/fcagnola/cartoonlp/blob/main/03_nltk_processing.py).
 
 ```{r echo=TRUE}
 library(syuzhet) #enables Syuzhet package for the sentiment analysis
@@ -932,9 +939,9 @@ paged_table(head(df))
 
 <br>
 
-For this kind of analysis we extracted the dimensions of `df` we were interested in: *Release year*, *X* renamed as*Title*, and *Text* as it is the output of the first cleaning in Section 1.
+For this kind of analysis we extracted the dimensions of `df` we were interested in: *Release year*, T*itle*, and *Text* as it is the output of the first cleaning in Section 1.
 
-We choose these three parameters to chronologically position each movie as a distinct item and let all the tokenization tasks to be carried out by Syuzhet
+We choose these three parameters to chronologically position each movie as a distinct item and let all the tokenization tasks to be carried out by Syuzhet.
 
 ```{r df with textes for analysis}
 texts_df<- df[, c("X", "Year", "Text")]
@@ -956,7 +963,9 @@ paged_table(texts_df)
 
 <br>
 
-#### Experiment on T2
+#### Experiments
+
+The following script shows how we created and manipulated and the syuzhet vectors for each cluster's movies:
 
 For each one of the following experiments, the first step was to extract the dialogues from the `texts_df`, split them into sentences with `get_sentences()` function and create a vector containing sentiment values computed with the `"syuzhet"` method, that we choose because it is tuned to fiction.
 
@@ -986,9 +995,9 @@ sv_3<- get_sentiment(v_3, method="syuzhet")
 
 In order to make movies with different word-lengths comparable, we followed the instructions provided by Syuzhet developers for normalizing the vectors and visualizing them together on a line chart to see differences in their sentiment shifts.
 
-The first step consistent in smoothing and re-scaling syuzhet vectors with `rescale()` and `loess()`functions respectively. At this point vectors still had different length vectors, that cannot be compared mathematically. Therefore we apply the same formula used in the tutorial, sampling vectors into 100 sampled points and plotting them on the graph.[^4]
+The first step consisted in smoothing and re-scaling syuzhet vectors with `rescale()` and `loess()`functions respectively. At this point vectors still had different lengths, that could not be compared mathematically. Therefore we apply the same formula used in the tutorial, sampling vectors into 100 sampled points and plotting them on the graph.[^5]
 
-[^4]: cf. <https://cran.r-project.org/web/packages/syuzhet/vignettes/syuzhet-vignette.html>
+[^5]: cf. <https://cran.r-project.org/web/packages/syuzhet/vignettes/syuzhet-vignette.html>
 
 ```{r message=FALSE, warning=FALSE}
 
@@ -1010,7 +1019,13 @@ line3 <- rescale(predict(raw_3))
 sample_1 <- seq(1, length(line1), by=round(length(line1)/100))
 sample_2 <- seq(1, length(line2), by=round(length(line2)/100))
 sample_3 <- seq(1, length(line3), by=round(length(line3)/100))
+```
 
+<br>
+
+#### Experiment on T2
+
+```{r echo=FALSE}
 plot(line1[sample_1], 
      type="l", 
      col="seagreen",
@@ -1027,7 +1042,7 @@ legend(70, 1, legend=c(text1, text2, text3),
        title="Movies", text.font=4, bg='white')
 ```
 
-As we choose to plot dialogues in which T2 had weight \>= .40, we noticed that the lines of the two movies released in the mid-twentieth century have completely different shapes, suggesting there is no correlation between the fact they shared T2 and epoch and their sentiment trend. The graph becomes interesting when we also look at Tangled's curve (2010) that has the peculiarity of being a sort of historical average between the former movies.
+As we choose to plot dialogues in which T2 had weight \>= .40, we noticed that the lines of the two movies released in the mid-twentieth century have completely different shapes,suggesting there is no binding correlation between selected movies and their sentiment trend. The graph becomes interesting when we also look at Tangled's curve (2010), which has the peculiarity of being a sort of historical average between the former movies.
 
 This particular graph suggests that there is no fixed trend in the sentiment curve of movies sharing the same topic, but there is the possibility that some combinations in the sentiment shifts might be characteristic of a determinate cluster.
 
@@ -1111,9 +1126,9 @@ legend(5, -0.6, legend=c(text1, text2, text3, text4),
 
 In cluster T3 we selected Peter Pan from 1953, the Rescuers from 1977 with its sequel released in 1990 and finally a movie of the early 2000.
 
-Comparing the two movies at the poles of the timeline we consider here, we notice that the Peter Pan's curve is more excited and swinging with respect to the Treasure planet. The first Rescuers' movie, instead, looks like a pivot between the two of them suggesting that throughout years the plot of movies clustered in topic 3 might have been smoothed in terms of sentiment shifts.
+Comparing the two movies at the opposite poles of the timeline we consider here, we notice that the Peter Pan's curve is more excited and swinging with respect to the Treasure planet. The first Rescuers' movie, instead, looks like a pivot between the two of them suggesting that throughout years the plot of movies clustered in topic 3 might have been smoothed in terms of sentiment shifts.
 
-Finally we have also plotted the sequel of the rescuers that was released 13 years apart from the original one. The comparison between these two movies is interesting because they start in two different way the first very positive, while the second is extremely negative, but they share the time position of local maxima and minima on the graph.
+Finally we have also plotted the sequel of the rescuers that was released 13 years later than the original one. The comparison between these two movies is interesting because they start in two different ways -- the first very positive, while the second is extremely negative -- but they share the time position of local maxima and minima on the graph.
 
 <br>
 
@@ -1188,7 +1203,7 @@ legend(65, 1, legend=c(text1, text2, text3, text4),
 
 ```
 
-For topic 9 we decided to focus on movies released within the same decade, the nineties. Here we notice a distinction in sentiment values between movies having male leads from those with female leading characters. Tarzan and Hercules have indeed the characteristic of ending with highly positive characters compared to Mulan and Pocahontas. Additionally we accounted that movies with female leads both finish with a value 0.5 point lower that the one they had at the beginning.
+For topic 9 we decided to focus on movies released within the same decade, the nineties. Here we notice a distinction in sentiment values between movies having male leads from those with female leading characters. Tarzan and Hercules have indeed the characteristic of ending with highly positive interactions and dialogues compared to Mulan and Pocahontas. Additionally we noted that movies with female leads both finish with a value 0.5 point lower than the beginning.
 
 <br>
 
@@ -1258,9 +1273,9 @@ legend(65, 1, legend=c(text1, text2, text3, text4),
        title="Movies", text.font=4, bg='white')
 ```
 
-In the analysis of topic 9 we selected those movies released between the end of the ninetieths and the beginning of 2000 including Moana which has the highest weight value in this cluster. By means of this graph we found out that movies released after the year 2000 end with negative sentiment values, while Tarzan and Dinosar end with highly positive sentiment in their dialogues.
+In the analysis of topic 9 we selected those movies released between the end of the nineties and the beginning of two thousands including Moana which has the highest weight value in this cluster. By means of this graph we found out that movies released after the year 2000 tend to end with negative sentiment values, while Tarzan and Dinosar end with highly positive sentiment in their dialogues.
 
-Additionally the graph shows the overall similarity of the curve of the first three movies that are close to each other in terms of time (1 \~ 4 years apart from each other) and how it evolved after 13 years with Moana. This last movie has indeed a more swinging curve, is the only one with values above 0 in the middle of the plot (others are positive only at the beginning and/or at the end of the story), and its curve decreases when others are increasing.
+Additionally the graph shows the overall similarity of the curve of the first three movies that are close to each other in terms of time (1 \~ 4 years apart from each other) and how it evolved after 13 years with Moana. This last movie has indeed a more swinging curve, it is the only one with values above 0 in the middle of the plot (others are positive only at the beginning and/or at the end of the story), and its curve decreases when others are increasing.
 
 <br>
 
@@ -1312,7 +1327,7 @@ T11 was selected for analysis because we though it could be worthy to compare th
 
 Here we noticed that the first movie, is the one with the most swinging curve. It starts in a neutral manner decreasing in emotional valence for the first quarter rof the film, while the second movie's curve acts in the opposite way (from very negative, -1, to positive values). By the beginning of the second quarter of the x axis, both movies start decreasing again, but as Big Hero 6 settles to an average value around -0.5 for the majority of the remaining narrative time, Meet The Robinsons keeps decreasing untill the finale in which the emotional valence of their dialogue increases up to 1.
 
-We suppose these values could be someway indicative of the changes in the approach of children (and also their parents) towards technology, .
+We suppose these values could be somehow indicative of the changes in the approach towards technology.
 
 <br>
 
@@ -1371,9 +1386,9 @@ legend(20, 1, legend=c(text1, text2, text3),
        title="Movies", text.font=4, bg='white')
 ```
 
-For cluster 13 we analyzed three movies released between 1942 and 1950. Here we notice that the sentiment valence, at least at the beginning, is quite similar between Bambi and Cinderella, and never exceeds the value of 0 until the finale. On the other side Make Mine Music dialogues have a similar valence in the first half of the movie, but drastically changes at its half and increases in positivity reaching the value of 1 around point 70 in its narrative time sample.
+For cluster 13 we analyzed three movies released between 1942 and 1950. Here we notice that the sentiment valence, at least at the beginning, is quite similar between Bambi and Cinderella, and never exceeds the value of 0 until the finale. On the other side Make Mine Music dialogues have a similar valence in the first half of the movie, but drastically change at its half and increases in positivity reaching the value of 1 around point 70 in its narrative time sample.
 
-This difference of MMM from Bambi and Cinderella might be explained with the fact that its structure (composed by 10 short-films), that does not undergo the same restrictions of the plot of a traditional story like the other two movies, but is representative of-- and influenced by the deliberate editing and artistic choices made by producers.
+This peculiarity Make Mine Music with respect to Bambi and Cinderella might be explained by the fact that its structure (composed by 10 short-films) does not undergo the same restrictions of the plot of a traditional story like the other two movies, but is representative of -- and influenced by -- the deliberate editing and artistic choices made by producers.
 
 <br>
 
@@ -1443,7 +1458,9 @@ legend(75, 1, legend=c(text1, text2),
 
 T14's movies Alice in Wonderland and The Beauty and the Beast have been released 40 years apart from each oter and we decided to compare the two in order to understand if there were some similarities left in dialogues' emotional valence, despite their distance in time.
 
-As we can see from the plotted graph we have an interesting situation in which the older film starts and ends with values below the 0 and reaches its maximum positivity in dialogues exactly in the middle of the narrative time. Menwhile the 1991's movie has a more complex curve in terms of emotional shifts and starts in a positive way.
+As we can see from the plotted graph, we have an interesting situation, in which the older film starts and ends with values below the 0 and reaches its maximum positivity in dialogues exactly in the middle of the narrative time. Meanwhile the 1991's movie has a more complex curve in terms of emotional shifts and starts in a positive way.
+
+<br>
 
 #### Experiment on T15
 
@@ -1503,7 +1520,7 @@ legend(70, 1, legend=c(text1, text2, text3),
 
 ```
 
-The movies in cluster 15 have all similar curves and as time passes we notice an increasing of positive emotionaol valence expecially in the central part of the narrative time. The increase of positive values could be related to the increase of importance of the topic in the movies since it follows the same trend of weights:
+The movies in cluster 15 all have similar curves and -- as time passes -- we notice an increase of positive emotional valence especially in the central part of the narrative time. The increase of positive values could be related to the increase of importance of the topic in the movies since it follows the same trend of weights:
 
 -   Princess and the Frog has T15 weight of 0.4825248 and mean emotional valence of 0.1783544
 
@@ -1511,7 +1528,15 @@ The movies in cluster 15 have all similar curves and as time passes we notice an
 
 -   Raya and the Last Dragon has T15 weight of 0.5064836 and mean emotional valence of 0.2095595
 
+Finally, we note that, despite having different curves, all movies end with roughly the same trend and sentiment value.
+
+<br>
+
+------------------------------------------------------------------------
+
 ## Conclusions
+
+<br>
 
 While we gathered many valuable insights, we are also aware of the limitations of our study, mainly due to our limited knowledge and skill in the field of data science as well as to our small dataset.
 
@@ -1519,12 +1544,20 @@ Some interesting conclusions emerged nonetheless, mainly from the intersection b
 
 We hope this introductory analysis can prove to be a useful starting point for further explorations of this topic. We strongly feel that this field - natural language aimed at children - while rarely explored can be quite interesting because of its dual nature. In a seemingly transparent way, since we're dealing with a live natural language, it mirrors some cultural features directly, but at the same time it also contributes to the formation of young citizens, and it's thus involved in shaping tomorrow's society.
 
-## Resources
+<br>
 
-<https://mimno.github.io/Mallet/index>
+<br>
+
+<br>
+
+## Web Resources
+
+[https://mimno.github.io/mallet/index](https://mimno.github.io/Mallet/index){.uri}
 
 <https://senderle.github.io/topic-modeling-tool/documentation/2018/09/27/optional-settings.html>
 
 <https://github.com/mjockers/syuzhet>
 
 <https://www.qualtrics.com/uk/experience-management/research/text-analysis/?rid=ip&prevsite=en&newsite=uk&geo=IT&geomatch=uk>
+
+<https://www.ibm.com/cloud/learn/text-mining>
