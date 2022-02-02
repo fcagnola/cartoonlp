@@ -12,7 +12,7 @@ with open("02_out_texts.pickle", "rb") as fp:
     data = pickle.load(fp)
 
 df = pd.DataFrame.from_dict(data, orient='index', columns=["Year", "Text"])
-# Dataframe: 
+# Dataframe:
 # title - year - text
 
 
@@ -21,20 +21,23 @@ def sentence_tokenize(txt: str) -> List[str]:
     text = sent_tokenize(txt)
     return text
 
+
 def tokenize_and_remove_stopwords(txt: str):
     """Basic tokenisation function with stopwords removal"""
     tokenized = word_tokenize(txt)
-    stripped_lower = [word.lower() for word in tokenized if word not in STOP_WORDS and word not in punctuation]
+    stripped_lower = [word.lower(
+    ) for word in tokenized if word not in STOP_WORDS and word not in punctuation]
     return stripped_lower
+
 
 df['Sentence_Tokenized'] = df['Text'].apply(lambda x: sent_tokenize(x))
 df['Tokenized'] = df['Text'].apply(lambda x: tokenize_and_remove_stopwords(x))
-# Dataframe: 
+# Dataframe:
 # title - year - text - sentence tokenized - tokenized
 
 
-#print(df.head(59))
-#df.to_pickle("03_out_dataframe.pickle")
+# print(df.head(59))
+# df.to_pickle("03_out_dataframe.pickle")
 df.to_csv("03_out_dataframe.csv")
 
 # print(df['Tokenized'].iloc[1])
