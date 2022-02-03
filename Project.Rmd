@@ -203,7 +203,7 @@ First we imported the pre-processed files from directory `/nn_txts` into MALLET 
 
 `--input sample-data/nn_txts \`
 
-`--output disney_topics.malle \`
+`--output disney_topics.mallet \`
 
 `--keep-sequence\`
 
@@ -236,6 +236,10 @@ Numbers of iterations and optimization interval were kept as default since they 
 The final input parameters we gave MALLET are the following, and after that run we decided to keep the resulting clusters.
 
 `mallet train-topics --input disney_topics.mallet \`
+
+`--num-iterations 1000 \`
+
+`--optimize-interval 20 \`
 
 `--num-topics 15 \`
 
